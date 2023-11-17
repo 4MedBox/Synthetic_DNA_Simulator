@@ -83,11 +83,7 @@ if __name__ == '__main__':
     #for loop: every amount of mutations will be used (1 mutation, 2 mutations, 3 mutations etc.)
         while count <= lis[len(lis)-1]:
 
-            #while loop below is to get sequence with 5232 mutations.
-            # while count <= 5232:
-            #     count+=1
-            #     print(count)
-            # print("ja")
+        
             f.write('====New Number of Possible Mutations===\n')
             f.write('Get all possible combinations with the to be used mutations\n')
             #with the N to be used mutations, all of the possible combinations will be calculated.
@@ -119,8 +115,9 @@ if __name__ == '__main__':
                     for gene in result:
 
                         #if statement below is to go to the survival check if the gene is HTT
-                        # if snakemake.config['gene'].upper() == "HTT":
-                        #     survivability.Survival(gene[1])
+                        if snakemake.config['gene'].upper() == "HTT":
+                            add = survivability.Survival(gene[1])
+                            gene[0].append(add)
 
                         f.write("found 2 repeats\n")
                         population+=1
