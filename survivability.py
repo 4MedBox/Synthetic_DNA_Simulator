@@ -28,5 +28,6 @@ def Survival(seq):
 
     for i in cag_list:
         if (i[1] - i[0]) / 3 >= 27:
-            print(seq, (i[1] - i[0]) / 3)
-            # exit()
+            return ["mutated HTT gene"]
+
+    return ["non mutated HTT gene"]
