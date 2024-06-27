@@ -1,180 +1,150 @@
-# Creating synthetic mutated DNA data
-A bash/python script for generating synthetic mutated DNA sequences based on the gnomAD database.
+# SynthDNASim: Creating diverse synthetic mutated DNA data set
+A python tool
+for generating synthetic DNA sequences based on the dbSNP database from NCBI.
 
 ## Why should I use this project?
-It is difficult to get personal patient data such as DNA due to privacy concerns or low availability
-of data. The gnomAD database uses mutations found in population studies. These 
-mutations are publicly available due to the consent each person has given to go along 
-with the study. Therefore, it is possible to create a synthetic population based on the data of these mutations. With this tool and the to be generated sequences, researchers can perform tests on 
-their tools, or can research certain combinations of mutations, which otherwise 
-would not be possible. Please make sure to install all libraries and versions.
+There is a lack of genomic data in the biomedical research of rare genetic diseases such as HD.
+This data is needed, for example,
+to determine the genetic process
+that causes these diseases or to identify gene variants.
+The lack of data is due to the rarity of the disease and the privacy of genomic data.
+Regulatory laws protect these individuals' privacy,
+which raises the issue of access to genomic data.
+One solution is
+to create diverse synthetic DNA data
+so that researchers can generate their own DNA data,
+which makes the research process much faster and more reproducible
+because the DNA data does not belong to anyone.
+This is why SynthDNASim was created.
 
 ## Setup
-This pipeline consists of multiple scripts, which can be run independently. All 
-scripts are combined into one script, called `Snakefile`. Each script uses files 
-and/or databases with specific names or NCBI-/ENSEMBL-codes according to the GrChr37 
-version of the genes and their according chromosomes.
+SynthDNASim is composed of six different scripts.
+These are user_input.py, mutate_ref_sequence.py, check_CAA_CAG_HD.py,
+sequence_generator.py, population.py, and main.py.
+The main.py script executes the tool.
+The tool is based on the GrCh38 reference genome assembly.
 
-### The main script
-#### What does it do?
-The main script calls the other scripts and retrieves data such as chromosomes and 
-mutational data, stores it, and uses it to create synthetic sequences. Itt can be used with the following command:
+#### The main script
+The main script is used to execute the tool.
+It can be used with the following command,
+making sure that all necessary scripts and files are in a working directory:
 ```commandline
-snakemake
+python main.py --config_file name_of_config_file.json
 ```
-When the command above is used, the default options from `config.yaml` are used.
+The script can also be run in an integrated development environment such as PyCharm.
+Make sure that all necessary scripts and files are in one working directory.
+This script executes all the code from the files necessary to create a 
+synthetic DNA data set.
+Main.py can create a config file with user input,
+or the user can add an already existing config file.
+The config file must be a JSON file!
+Packages/libraries used are:
+* [json](https://docs.python.org/3/library/json.html): Used to read and write the json config file
+* [argparse](https://docs.python.org/3/library/argparse.html): Used to give arguments/parameters to a python script when it is run in a command line
+* [time](https://docs.python.org/3/library/time.html): Used to see how long it takes for the script to create all populations
+* [csv](https://docs.python.org/3/library/csv.html): Used to write metadata in a tsv file
 
-If you want to run the complete script with other options than the default options, 
-you can use `--config` with the options from the other scripts as described below.
+###### Output (main.py)
+This tool creates two files: 
+a Fasta file with synthetic DNA sequences 
+and a metadata file with sample names and population data. 
+An example is HTT_result.fasta.
 
-#### Commandline input
-```commandline
-snakemake get_gene
-```
+#### User input (user_input.py)
+This script is used to ask and store the user input.
+Packages/libraries used are:
+* [re](https://docs.python.org/3/library/re.html): Used for the extraction of the snp or rs number from
 
-#### Output
-The command line above will give the fasta file ending with `.fasta`. The name of 
-the given gene will be in front of the filetype.
+###### Optional input file (haplotype file)
+The text file must contain haplotype names and percentages, 
+along with rs codes and alleles.
+This is per population!: 
+- Add one haplotype on a newline!:
 
-#### User input
-There is also a possibility to give other input than the default input:
-```commandline
-snakemake get_gene --config NC_code="NC_000023.10" gene="DMD"
-```
+  haplotype name1, percentage (0-100 THIS MUST BE AN INTEGER),
+  RS code 1 (allele (A, C, G and or T)),
+  RS code 2 (allele (A, C, G and or T)), etc…
 
-#### Output
-In the example given above, the output will be a fasta file named `DMD.fasta`
+  haplotype name2, percentage (0-100 THIS MUST BE AN INTEGER), RS code 1 (allele (A, C, G and or T)), RS code 2 (allele (A, C, G and or T)), etc…
+Example: haplotype p21, 20, rs986354601 (T), rs946330590 (T)
 
+###### Output
+The user input generates a configuration file called config.json. 
+The content of this file is described below. 
 
+###### config file 
+`config.json` contains all info:
 
-
-### get_gene
-#### What does it do?
-The bash script asks for the NC code from NCBI according to the GrChr37 version of 
-the human chromosome, and the name of the gene. It searches on the NCBI databases for 
-the given code, and gives a fastafile back. The bash script is located in the 
-file `Snakefile`.
-
-#### Library dependencies
-* [esearch](https://www.ncbi.nlm.nih.gov/books/NBK25499/): used to search in the nucleotide NCBI database.
-* [efetch](https://www.ncbi.nlm.nih.gov/books/NBK25499/): used to fetch the fasta file from NCBI.
-* [egrep](https://www.gnu.org/software/grep/manual/grep.html): deletes the fasta header from the fasta file.
-* [tr](https://www.gnu.org/software/coreutils/manual/html_node/tr-invocation.html#tr-invocation): deletes all enters, so the fasta file will be one long string.
-
-#### Commandline input
-```commandline
-snakemake get_gene
-```
-
-#### Output
-The command line above will give the fasta file ending with `.fasta`. The name of 
-the given gene will be in front of the filetype.
-
-#### User input
-There is also a possibility to give other input than the default input:
-```commandline
-snakemake get_gene --config NC_code="NC_000023.10" gene="DMD"
-```
-
-#### Output
-In the example given above, the output will be a fasta file named `DMD.fasta`
+| Item                  | Value(s)               | Description                                                                               |
+|-----------------------|------------------------|-------------------------------------------------------------------------------------------|
+| `CAG repeats`         | integers               | The min and maximum number of CAG repeat.                                                 | 
+| `CAG sub`             | String y or n          | If the user wants the CAG repeat in the sub sequence.                                     |
+| `CAA`                 | String y or n          | If the user wants the CAA codon in the CAG repeat.                                        |
+| `recombine`           | String y or n          | If the user wants to recombine mutations.                                                 |
+| `recombine_pop`       | String b or w          | If the user wants to recombine mutations from within a population or between populations. |
+| `amount_recombine`    | Integer                | The number of sequences the user wants with new recombinations.                           |
+| `gene_or_subseq`      | String g or s          | If the user wants an entire gene or just a subsequence.                                   |
+| `ensemble`            | String ENSG00000197386 | ENSEMBL code for the HTT-gene on gnomAD.                                                  |
+| `gene`                | String HTT             | The name of the gene.                                                                     |
+| `NC_code`             | String NC000004.12     | NCBI code for the 4th chromosome of the H. Sapiens (GrChr38)                              |
+| `db`                  | HTT                    | Name of the database.                                                                     |
+| `max_sequences`       | Integer                | Number of generated sequences needed to be displayed in the result file.                  |
+| `treats`              | Integer                | Number of threats used.                                                                   |
+| `population`          | String/Integer         | Name of the population, percentage of the population, haplotypes, RS codes and allele.    |
 
 
-### create_db
-#### What does it do?
+#### Creating a database from variants from gnomad (gnomad.py, this is currently not used!)
 The python script asks for the ENSEMBL code according to the GrChr37 version of the 
 human chromosome, and the number of mutations. It takes the ENSEMBL code and searches
 for the variant list in the ENSEMBL databases. It retrieves this data and searches 
 for the mutation data with every retrieved RS-code. With certain parts of this 
-mutational information, a new database will be created.  
+mutational information, a new database will be created.
 
-
-#### Library dependencies
-* [time](https://docs.python.org/3/library/time.html): used to wait _x_ seconds, therefore the gnomAD database will not overload. 
+###### Library dependencies
+* [time](https://docs.python.org/3/library/time.html): used to wait _x_ seconds, therefore, the gnomAD database will not overload
 * [sqlite3](https://docs.python.org/3/library/sqlite3.html): used to create and add to database
-* [datetime](https://docs.python.org/3/library/datetime.html): used to calculate how much time from  the retrieval from gnomAD data and push to database is
-* [requests](https://pypi.org/project/requests/) (version 2.28.2): used to send requests to the GNOMAD api.
+* [datetime](https://docs.python.org/3/library/datetime.html): used to calculate how much time from the retrieval from gnomAD data and push to a database is
+* [requests](https://pypi.org/project/requests/): used to send requests to the GNOMAD api
 * [sys](https://docs.python.org/3/library/sys.html): used to make sure all print statements towards terminal are noted in log file
-* [tqdm](https://tqdm.github.io/) (version 4.65.0): progressbar, so the user can see how much time passed and at what percentage the (part of the) script is.
+* [tqdm](https://tqdm.github.io/): progressbar, so the user can see how much time passed and at what percentage the (part of the) script is
+* [json](https://docs.python.org/3/library/json.html): Used to read and write json config files
 
-#### Commandline input
-```commandline
-snakemake create_db
-```
-
-#### Output
+###### Output
 The command line above will give the database file ending with `.db`. The name of the
 given gene will be in front of the filetype.
 
-#### User input
-There is also a possibility to give other input than the default input:
-```commandline
-snakemake create_db --config db="test" rs_codes="rs1445714790"
-```
 
-#### Output
-In the example given above, the output will be a database file named `test.db`. It 
-will have the default number of 20 mutations, including the rs-code `rs1445714790`. It is also possible to give more than one rs-code, as long as it is between quotation marks and separated with comma's.
+#### Generate the synthetic sequences (sequence_generator.py)
+This script generates mutated sequences for each haplotype and checks
+if they have the correct CAG repeat interval.
 
-### create_sequences
-#### What does it do?
-With this script, the user will create sequences based on the mutations in the given 
-database.
+###### Library dependencies
+* [biopython](https://biopython.org/): To extract the chromosome DNA sequence and SNP info from NCBI
+* [os](https://docs.python.org/3/library/os.html): Used for working in different directories and to create a directory for the XML RS code files.
+* [xml.etree.ElementTree](https://docs.python.org/3/library/xml.etree.elementtree.html#module-xml.etree.ElementTree): Used to read the XML RS code files
+* [math](https://docs.python.org/3/library/math.html): Used to round up numbers
+* [random](https://docs.python.org/3/library/random.html):
+  Used to create random recombinations of mutations
+in and between populations and to create a seed
+* [csv](https://docs.python.org/3/library/csv.html): Adding rows to the metadata tsv file
 
-#### Library dependencies
-* [itertools](https://docs.python.org/3/library/itertools.html): creates combinations of mutations based on the number of mutations needed in that particular loop
-* [sqlite3](https://docs.python.org/3/library/sqlite3.html): used to create cursor and connection, to search for mutation info in created database.
-* [sys](https://docs.python.org/3/library/sys.html): used to exit the program, is certain threshold in HTT sequence is reached.
-* Thread (See "_Other scripts: Thread.py_"): used to thread with 4 cores at the same time, therefore 4 combinations of mutations can be created at the same time.
-* [datetime](https://docs.python.org/3/library/datetime.html): used to set a timestamp in the result file to see when a sequence is created. 
-* [tqdm](https://tqdm.github.io/) (version 4.65.0):  progressbar, so the user can see how much time passed and at what percentage the (part of the) script is.
+###### Output
+The output will be a Fasta file with the gene name and `_result.fasta` behind it. 
 
 
-
-#### Commandline input
-```commandline
- snakemake create_sequences
-```
-
-#### Output
-The output will be a fasta file with the name of the used database as name. 
-
-#### User input
-There is also a possibility to give other input than the default input:
-```commandline
- snakemake create_sequences --config db="HTT_30" number_of_mutations=30
-```
-
-#### Output
-The output will be a fasta file with the name of the gene, with `_result.fasta` 
-behind the gene. With the used options, the top 30 mutations in the given database 
-will be used to create sequences.
-
-### Other used files
-There are two more files, which are being used to run the pipeline and create the synthetic sequences.
-
-#### config.yaml
-`config.yaml` contains all info for the default options. The default options are as followed:
-
-| Syntax                | Default         | Description                                                              |
-|-----------------------|-----------------|--------------------------------------------------------------------------|
-| `ensembl`             | ENSG00000197386 | ENSEMBL code for the HTT-gene on gnomAD                                  | 
-| `gene`                | HTT             | Abbreviation for the Huntington gene                                     |
-| `NC_code`             | NC_000004:11    | NCBI code for the 4th chromosome of the H. Sapiens                       |
-| `db`                  | HTT             | Abbreviation for the Huntington gene                                     |
-| `number_of_mutations` | 20              | Amount of mutations in the database  which are to be used                |
-| `rs_codes`            | all             | Which mutations are to be used to generate synthetic sequences           |
-| `max_sequences`       | all             | Amount of generated sequences needed to be displayed in the result file. |
-
-When the user uses another variable than the default variable, the default variable will be overriden and the user variable will be used.
-
- 
-#### thread.py
-`thread.py` speeds up the script with the use of multiple threads. It uses the library [threading](https://docs.python.org/3/library/threading.html) (version ???). 
-With this library, it is possible to run multiple threads alongside each other. In this case, the default 
-number of to be used cores would be 4, the default setting in `config.yaml`. This can be changed in the command line with `--config threads=2` for example.
+#### Creating a synthetic population (population.py)
+This class creates the synthetic DNA sequences of each haplotype per population.
 
 
-#### survivability.py
-`survivability.py` checks if a synthetically created HTT gene would survive in the real world. It checks based on the CAG repeat. If there is more than 27 CAG repeats in a sequence, the sequence will be printed on the terminal.
+#### Mutating the sequence
+`mutate_ref_sequence.py` mutates the reference DNA sequence of the chromosome.
+It uses the library [threading](https://docs.python.org/3/library/threading.html). 
+With this library,
+it is possible to run multiple threads alongside each other. 
+
+
+#### Check the CAG repeats for HD 
+`check_CAA_CAG_HD.py` This script checks if a synthetically created HTT gene has the correct CAG repeat interval and can also remove the CAA codon. If the CAG repeats are not in the user interval, it can add or remove them.
+###### Packages/libraries used are:
+* [random](https://docs.python.org/3/library/random.html): Random is used to randomly add an amount of CAG and to add a seed for reproducibility.
 

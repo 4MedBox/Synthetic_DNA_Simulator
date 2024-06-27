@@ -1,8 +1,0 @@
-ensembl: ENSG00000197386
-gene: HTT
-NC_code: NC_000004:11
-db: HTT
-number_of_mutations: 20
-rs_codes: all
-max_sequences: all
-cores: 4
